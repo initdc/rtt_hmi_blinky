@@ -16,6 +16,49 @@ void hal_entry(void)
     /* Enter non-secure code */
     R_BSP_NonSecureEnter();
 #endif
+	
+    /* Define the units to be used with the software delay function */
+    const bsp_delay_units_t bsp_delay_units = BSP_DELAY_UNITS_MILLISECONDS;
+
+    /* Set the blink frequency (must be <= bsp_delay_units */
+    const uint32_t freq_in_hz = 2;
+
+    /* Calculate the delay in terms of bsp_delay_units */
+    const uint32_t delay = bsp_delay_units / freq_in_hz;
+
+    /* Holds level to set for pins */
+    bsp_io_level_t pin_level = BSP_IO_LEVEL_LOW;
+
+    while (1)
+    {
+			
+        /* Enable access to the PFS registers. If using r_ioport module then register protection is automatically
+         * handled. This code uses BSP IO functions to show how it is used.
+         */
+        R_BSP_PinAccessEnable();
+
+        /* Update all board LEDs */
+				/* Write to this pin */
+				R_BSP_PinWrite((bsp_io_port_pin_t) LED1, pin_level);
+				R_BSP_PinWrite((bsp_io_port_pin_t) LED2, pin_level);
+
+        /* Protect PFS registers */
+        R_BSP_PinAccessDisable();
+
+
+        /* Toggle level for next write */
+        if (BSP_IO_LEVEL_LOW == pin_level)
+        {
+            pin_level = BSP_IO_LEVEL_HIGH;
+        }
+        else
+        {
+            pin_level = BSP_IO_LEVEL_LOW;
+        }
+
+        /* Delay */
+        R_BSP_SoftwareDelay(delay, bsp_delay_units);
+    }
 }
 
 /*******************************************************************************************************************//**
